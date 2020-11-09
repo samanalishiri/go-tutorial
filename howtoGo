@@ -1,0 +1,9 @@
+cd ~
+curl -fLO https://dl.google.com/go/go1.15.3.darwin-amd64.pkg
+
+sed -i 's/$PATH/\/usr\/local\/go\/bin:$PATH/g' .zshrc
+source ~/.zshrc
+go version
+
+go get github.com/asdine/storm/v3
+go get gopkg.in/mgo.v2/bson

@@ -1,0 +1,8 @@
+cd ~
+curl -fLO https://github.com/bazelbuild/bazel/releases/download/3.7.0/bazel-3.7.0-installer-darwin-x86_64.sh
+chmod +x ./bazel-3.7.0-installer-darwin-x86_64.sh
+./bazel-3.7.0-installer-darwin-x86_64.sh --user
+sed -i 's/$PATH/$HOME\/bin:$PATH/g' .zshrc/.bashrc/.profile
+source ~/.zshrc/.bashrc/.profile
+bazel --version
+
