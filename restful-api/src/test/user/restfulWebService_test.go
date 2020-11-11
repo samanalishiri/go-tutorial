@@ -22,13 +22,14 @@ var model = user.User{
 	Role: "Developer",
 }
 
-func Test1_UserGetOne_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
+func Test1_UserSave_GivenUser_PostRequest_ThenReturnLocation(t *testing.T) {
 
 	marshal, err := json.Marshal(model)
 	checkError(t, err, "the user could not marshal")
 
 	req, err := http.NewRequest("POST", "/users", bytes.NewBuffer(marshal))
 	checkError(t, err, "create http POST request was failed")
+	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(user.Endpoint)
@@ -63,9 +64,13 @@ func Test2_UserGetOne_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
 	assert.Equal(t, "Developer", res.User.Role)
 }
 
-func Test3_UserUpdate_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
-	req, err := http.NewRequest("GET", "/users/"+model.ID.Hex(), nil)
-	checkError(t, err, "create http GET request was failed")
+func Test3_UserUpdate_GivenIdentity_PutRequest_ThenReturnUser(t *testing.T) {
+	model.Role = "Team Lead"
+	marshal, err := json.Marshal(model)
+	checkError(t, err, "the user could not marshal")
+
+	req, err := http.NewRequest("PUT", "/users/"+model.ID.Hex(), bytes.NewReader(marshal))
+	checkError(t, err, "create http PUT request was failed")
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
@@ -82,5 +87,5 @@ func Test3_UserUpdate_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
 	json.Unmarshal(body, &res)
 
 	assert.Equal(t, "James", res.User.Name)
-	assert.Equal(t, "Developer", res.User.Role)
+	assert.Equal(t, "Team Lead", res.User.Role)
 }

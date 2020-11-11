@@ -17,21 +17,21 @@ type Response struct {
 
 func Test1_Marshal(t *testing.T) {
 	m := Message{"Alice", "Hello", 1294706395881547000}
-	b, err := json.Marshal(m)
+	bytes, err := json.Marshal(m)
 	if err != nil {
-
+		t.Fatalf("marshaling was failed: %v", err)
 	}
 
-	b2 := []byte(`{"name":"Alice","body":"Hello","time":1294706395881547000}`)
-	assert.Equal(t, len(b2), len(b))
-	assert.Equal(t, b2, b)
+	expect := []byte(`{"name":"Alice","body":"Hello","time":1294706395881547000}`)
+	assert.Equal(t, len(expect), len(bytes))
+	assert.Equal(t, expect, bytes)
 }
 
 func Test2_Unmarshal(t *testing.T) {
-	b := []byte(`{"message":{"name":"Alice","body":"Hello","time":1294706395881547000}}`)
+	bytes := []byte(`{"message":{"name":"Alice","body":"Hello","time":1294706395881547000}}`)
 	var res Response
 
-	err := json.Unmarshal(b, &res)
+	err := json.Unmarshal(bytes, &res)
 	if err != nil {
 		t.Fatalf("unmarshaling was failed: %v", err)
 	}
