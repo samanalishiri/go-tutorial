@@ -8,3 +8,4 @@ target
 go-tutorial.iml
 .scannerwork
 *.log
+*.db

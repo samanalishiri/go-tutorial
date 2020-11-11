@@ -1,4 +1,4 @@
-package userService
+package user
 
 import (
 	"encoding/json"
@@ -7,11 +7,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
-	"restfull-api/src/main/go/user"
 	"restfull-api/src/main/go/web"
 )
 
-func GetBody(r *http.Request, u *user.User) error {
+func GetBody(r *http.Request, u *User) error {
 	if r.Body == nil {
 		return errors.New("r body is empty")
 	}
@@ -30,7 +29,7 @@ func GetBody(r *http.Request, u *user.User) error {
 }
 
 func GetAll(w http.ResponseWriter, r *http.Request) {
-	users, err := user.All()
+	users, err := FindAll()
 	if err != nil {
 		web.ThrowError(w, http.StatusInternalServerError)
 		return
@@ -39,7 +38,7 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func Save(w http.ResponseWriter, r *http.Request) {
-	u := new(user.User)
+	u := new(User)
 	err := GetBody(r, u)
 	if err != nil {
 		web.ThrowError(w, http.StatusBadRequest)
@@ -48,9 +47,9 @@ func Save(w http.ResponseWriter, r *http.Request) {
 
 	u.ID = bson.NewObjectId()
 
-	err = u.Save()
+	err = SaveUser(u)
 	if err != nil {
-		if err == user.ErrRecordInvalid {
+		if err == ErrRecordInvalid {
 			web.ThrowError(w, http.StatusBadRequest)
 		} else {
 			web.ThrowError(w, http.StatusInternalServerError)
@@ -63,7 +62,7 @@ func Save(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
-	u, err := user.One(id)
+	u, err := FindById(id)
 	if err != nil {
 		if err == storm.ErrNotFound {
 			web.ThrowError(w, http.StatusNotFound)
@@ -76,16 +75,16 @@ func GetOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
 }
 
 func UpdateOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
-	u := new(user.User)
+	u := new(User)
 	err := GetBody(r, u)
 	if err != nil {
 		web.ThrowError(w, http.StatusBadRequest)
 		return
 	}
 	u.ID = id
-	err = u.Save()
+	err = SaveUser(u)
 	if err != nil {
-		if err == user.ErrRecordInvalid {
+		if err == ErrRecordInvalid {
 			web.ThrowError(w, http.StatusBadRequest)
 		} else {
 			web.ThrowError(w, http.StatusInternalServerError)
@@ -95,8 +94,8 @@ func UpdateOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
 	web.CreatHttpResponse(w, http.StatusOK, web.JsonResponse{"user": u})
 }
 
-func UsersPatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
-	u, err := user.One(id)
+func PatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
+	u, err := FindById(id)
 	if err != nil {
 		if err == storm.ErrNotFound {
 			web.ThrowError(w, http.StatusNotFound)
@@ -111,9 +110,9 @@ func UsersPatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
 		return
 	}
 	u.ID = id
-	err = u.Save()
+	err = SaveUser(u)
 	if err != nil {
-		if err == user.ErrRecordInvalid {
+		if err == ErrRecordInvalid {
 			web.ThrowError(w, http.StatusBadRequest)
 		} else {
 			web.ThrowError(w, http.StatusInternalServerError)
@@ -124,7 +123,7 @@ func UsersPatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
 }
 
 func DeleteOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
-	err := user.Delete(id)
+	err := DeleteById(id)
 	if err != nil {
 		if err == storm.ErrNotFound {
 			web.ThrowError(w, http.StatusNotFound)
