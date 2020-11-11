@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/asdine/storm/v3 v3.2.1
-	github.com/samanalishiri/go-tutorial v0.0.0-20201109221107-58f4d88a85e1 // indirect
+	github.com/stretchr/testify v1.2.2
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )

@@ -1,10 +1,10 @@
-package handler
+package endpoint
 
 import (
 	"net/http"
 )
 
-func RootHandler(response http.ResponseWriter, request *http.Request) {
+func RootEndpoint(response http.ResponseWriter, request *http.Request) {
 	if request.URL.Path != "/" {
 		response.WriteHeader(http.StatusNotFound)
 		response.Write([]byte("The URL is invalid"))
@@ -12,5 +12,5 @@ func RootHandler(response http.ResponseWriter, request *http.Request) {
 	}
 
 	response.WriteHeader(http.StatusOK)
-	response.Write([]byte("Hello GO lang\n"))
+	response.Write([]byte("GO Tutorial"))
 }
