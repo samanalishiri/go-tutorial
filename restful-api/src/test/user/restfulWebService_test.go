@@ -13,10 +13,6 @@ import (
 	"testing"
 )
 
-type Response struct {
-	User user.User `json:"user"`
-}
-
 var model = user.User{
 	Name: "James",
 	Role: "Developer",
@@ -57,14 +53,14 @@ func Test2_UserGetOne_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
 	body, err := ioutil.ReadAll(rr.Body)
 	checkError(t, err, "unmarshal response body was failed")
 
-	var res Response
-	json.Unmarshal(body, &res)
+	var u user.User
+	json.Unmarshal(body, &u)
 
-	assert.Equal(t, "James", res.User.Name)
-	assert.Equal(t, "Developer", res.User.Role)
+	assert.Equal(t, "James", u.Name)
+	assert.Equal(t, "Developer", u.Role)
 }
 
-func Test3_UserUpdate_GivenIdentity_PutRequest_ThenReturnUser(t *testing.T) {
+func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.T) {
 	model.Role = "Team Lead"
 	marshal, err := json.Marshal(model)
 	checkError(t, err, "the user could not marshal")
@@ -77,15 +73,26 @@ func Test3_UserUpdate_GivenIdentity_PutRequest_ThenReturnUser(t *testing.T) {
 	handler := http.HandlerFunc(user.FirstLevelEndpoint)
 	handler.ServeHTTP(rr, req)
 
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotNil(t, rr.Body)
+	assert.Equal(t, http.StatusNoContent, rr.Code)
+	assert.Nil(t, rr.Body.Bytes())
 
-	body, err := ioutil.ReadAll(rr.Body)
-	checkError(t, err, "unmarshal response body was failed")
+	req2, err2 := http.NewRequest("GET", "/users/"+model.ID.Hex(), nil)
+	checkError(t, err2, "create http GET request was failed")
+	req2.Header.Add("Content-Type", "application/json")
 
-	var res Response
-	json.Unmarshal(body, &res)
+	rr2 := httptest.NewRecorder()
+	handler2 := http.HandlerFunc(user.FirstLevelEndpoint)
+	handler2.ServeHTTP(rr2, req2)
 
-	assert.Equal(t, "James", res.User.Name)
-	assert.Equal(t, "Team Lead", res.User.Role)
+	assert.Equal(t, http.StatusOK, rr2.Code)
+	assert.NotNil(t, rr2.Body)
+
+	body, err2 := ioutil.ReadAll(rr2.Body)
+	checkError(t, err2, "unmarshal response body was failed")
+
+	var u user.User
+	json.Unmarshal(body, &u)
+
+	assert.Equal(t, "James", u.Name)
+	assert.Equal(t, "Team Lead", u.Role)
 }

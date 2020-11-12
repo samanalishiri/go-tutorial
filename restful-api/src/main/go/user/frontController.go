@@ -2,14 +2,12 @@ package user
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"log"
 	"net/http"
 	"restfull-api/src/main/go/web"
 	"strings"
 )
 
 func Endpoint(w http.ResponseWriter, r *http.Request) {
-	log.Println("URL: " + r.URL.Path)
 
 	switch r.Method {
 
@@ -32,7 +30,6 @@ func Endpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 func FirstLevelEndpoint(w http.ResponseWriter, r *http.Request) {
-	log.Println("URL: " + r.URL.Path)
 
 	pathVariable := strings.TrimPrefix(r.URL.Path, "/users/")
 	if !bson.IsObjectIdHex(pathVariable) {

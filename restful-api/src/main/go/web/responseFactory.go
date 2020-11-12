@@ -12,7 +12,7 @@ func ThrowError(w http.ResponseWriter, code int) {
 	http.Error(w, http.StatusText(code), code)
 }
 
-func CreatHttpResponse(w http.ResponseWriter, code int, content JsonResponse) {
+func CreatHttpResponse(w http.ResponseWriter, code int, content interface{}) {
 	if content == nil {
 		w.WriteHeader(code)
 		w.Write([]byte(http.StatusText(code)))

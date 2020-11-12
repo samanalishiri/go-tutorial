@@ -28,15 +28,6 @@ func GetBody(r *http.Request, u *User) error {
 	return json.Unmarshal(body, u)
 }
 
-func GetAll(w http.ResponseWriter, r *http.Request) {
-	users, err := FindAll()
-	if err != nil {
-		web.ThrowError(w, http.StatusInternalServerError)
-		return
-	}
-	web.CreatHttpResponse(w, http.StatusOK, web.JsonResponse{"users": users})
-}
-
 func Save(w http.ResponseWriter, r *http.Request) {
 	u := new(User)
 	err := GetBody(r, u)
@@ -71,7 +62,7 @@ func GetOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
 		web.ThrowError(w, http.StatusInternalServerError)
 		return
 	}
-	web.CreatHttpResponse(w, http.StatusOK, web.JsonResponse{"user": u})
+	web.CreatHttpResponse(w, http.StatusOK, u)
 }
 
 func UpdateOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
@@ -91,7 +82,20 @@ func UpdateOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
 		}
 		return
 	}
-	web.CreatHttpResponse(w, http.StatusOK, web.JsonResponse{"user": u})
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func DeleteOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
+	err := DeleteById(id)
+	if err != nil {
+		if err == storm.ErrNotFound {
+			web.ThrowError(w, http.StatusNotFound)
+			return
+		}
+		web.ThrowError(w, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func PatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
@@ -119,18 +123,14 @@ func PatchOne(w http.ResponseWriter, r *http.Request, id bson.ObjectId) {
 		}
 		return
 	}
-	web.CreatHttpResponse(w, http.StatusOK, web.JsonResponse{"user": u})
+	w.WriteHeader(http.StatusNoContent)
 }
 
-func DeleteOne(w http.ResponseWriter, _ *http.Request, id bson.ObjectId) {
-	err := DeleteById(id)
+func GetAll(w http.ResponseWriter, r *http.Request) {
+	users, err := FindAll()
 	if err != nil {
-		if err == storm.ErrNotFound {
-			web.ThrowError(w, http.StatusNotFound)
-			return
-		}
 		web.ThrowError(w, http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	web.CreatHttpResponse(w, http.StatusOK, users)
 }
