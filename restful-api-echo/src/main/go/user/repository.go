@@ -15,11 +15,11 @@ type Repository interface {
 type RepositoryImpl struct {
 }
 
-func NewUserRepository() Repository {
+func NewUserRepository() *RepositoryImpl {
 	return &RepositoryImpl{}
 }
 
-func (impl *RepositoryImpl) Save(u *User) error {
+func (impl *RepositoryImpl) SaveUser(u *User) error {
 
 	if err := u.validate(); err != nil {
 		return err

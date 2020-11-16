@@ -8,9 +8,12 @@ import (
 	"restfull-api/src/main/go/user"
 )
 
+var dispatcher = user.NewDispatcher()
+
 func main() {
-	http.HandleFunc("/users", user.Endpoint)
-	http.HandleFunc("/users/", user.FirstLevelEndpoint)
+	dispatcher := dispatcher.Init()
+	http.HandleFunc("/users", dispatcher.Dispatcher)
+	http.HandleFunc("/users/", dispatcher.Dispatcher)
 	http.HandleFunc("/", root.RootEndpoint)
 	err := http.ListenAndServe("localhost:8081", nil)
 	if err != nil {

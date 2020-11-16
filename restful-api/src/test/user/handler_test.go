@@ -13,10 +13,14 @@ import (
 	"testing"
 )
 
-var model = user.User{
-	Name: "James",
-	Role: "Developer",
-}
+var (
+	model = user.User{
+		Name: "James",
+		Role: "Developer",
+	}
+
+	dispatcher = user.NewDispatcher().Init()
+)
 
 func Test1_UserSave_GivenUser_PostRequest_ThenReturnLocation(t *testing.T) {
 
@@ -28,7 +32,7 @@ func Test1_UserSave_GivenUser_PostRequest_ThenReturnLocation(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(user.Endpoint)
+	handler := http.HandlerFunc(dispatcher.Dispatcher)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
@@ -44,17 +48,18 @@ func Test2_UserGetOne_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(user.FirstLevelEndpoint)
+	handler := http.HandlerFunc(dispatcher.Dispatcher)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.NotNil(t, rr.Body)
 
 	body, err := ioutil.ReadAll(rr.Body)
-	checkError(t, err, "unmarshal response body was failed")
+	checkError(t, err, "reading body was failed")
 
 	var u user.User
-	json.Unmarshal(body, &u)
+	err = json.Unmarshal(body, &u)
+	checkError(t, err, "unmarshal response body was failed")
 
 	assert.Equal(t, "James", u.Name)
 	assert.Equal(t, "Developer", u.Role)
@@ -70,7 +75,7 @@ func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(user.FirstLevelEndpoint)
+	handler := http.HandlerFunc(dispatcher.Dispatcher)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNoContent, rr.Code)
@@ -81,7 +86,7 @@ func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.
 	req2.Header.Add("Content-Type", "application/json")
 
 	rr2 := httptest.NewRecorder()
-	handler2 := http.HandlerFunc(user.FirstLevelEndpoint)
+	handler2 := http.HandlerFunc(dispatcher.Dispatcher)
 	handler2.ServeHTTP(rr2, req2)
 
 	assert.Equal(t, http.StatusOK, rr2.Code)
@@ -91,7 +96,8 @@ func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.
 	checkError(t, err2, "unmarshal response body was failed")
 
 	var u user.User
-	json.Unmarshal(body, &u)
+	err = json.Unmarshal(body, &u)
+	checkError(t, err, "unmarshal response body was failed")
 
 	assert.Equal(t, "James", u.Name)
 	assert.Equal(t, "Team Lead", u.Role)

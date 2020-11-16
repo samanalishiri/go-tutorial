@@ -8,4 +8,5 @@ go version
 go get github.com/asdine/storm/v3
 go get gopkg.in/mgo.v2/bson
 go get github.com/labstack/echo/v4
-github.com/stretchr/testify
+go get github.com/stretchr/testify
+go get -u github.com/labstack/echo/

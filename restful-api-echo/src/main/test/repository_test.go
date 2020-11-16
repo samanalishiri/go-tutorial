@@ -4,7 +4,7 @@ import (
 	"github.com/asdine/storm/v3"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/mgo.v2/bson"
-	"restfull-api/src/main/go/user"
+	"restful-api-echo/src/main/go/user"
 	"testing"
 )
 
@@ -17,7 +17,7 @@ var repository = user.NewUserRepository()
 
 func Test1_Save_GivenNewUser_WhenSave_ReturnID(t *testing.T) {
 	u.ID = bson.NewObjectId()
-	err := repository.Save(u)
+	err := repository.SaveUser(u)
 	checkError(t, err, "save user was failed")
 	assert.NotNil(t, u.ID)
 }
@@ -31,7 +31,7 @@ func Test2_One_GivenID_WhenReadOne_ThenReturnUser(t *testing.T) {
 
 func Test3_Update_GivenNewChanges_WhenUpdate_ThenApplyTheChanges(t *testing.T) {
 	u.Role = "Team Lead"
-	err := repository.Save(u)
+	err := repository.SaveUser(u)
 	checkError(t, err, "update user was failed")
 	u2, err := repository.FindById(u.ID)
 	checkError(t, err, "read user was failed")

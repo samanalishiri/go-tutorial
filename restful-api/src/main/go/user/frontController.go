@@ -3,63 +3,78 @@ package user
 import (
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
-	"restfull-api/src/main/go/web"
 	"strings"
 )
 
-func Endpoint(w http.ResponseWriter, r *http.Request) {
-
-	switch r.Method {
-
-	case http.MethodGet:
-		GetAll(w, r)
-		return
-	case http.MethodPost:
-		Save(w, r)
-		return
-	case http.MethodHead:
-		GetAll(w, r)
-		return
-	case http.MethodOptions:
-		web.CreateOptionsResponse(w, []string{http.MethodGet, http.MethodPost, http.MethodHead, http.MethodOptions}, nil)
-		return
-	default:
-		web.ThrowError(w, http.StatusMethodNotAllowed)
-		return
-	}
+type Context struct {
+	Writer  http.ResponseWriter
+	Request *http.Request
+	Params  map[string]string
 }
 
-func FirstLevelEndpoint(w http.ResponseWriter, r *http.Request) {
+type EndpointMapper struct {
+	method   string
+	url      string
+	function func(c Context)
+}
 
-	pathVariable := strings.TrimPrefix(r.URL.Path, "/users/")
-	if !bson.IsObjectIdHex(pathVariable) {
-		web.ThrowError(w, http.StatusNotFound)
-		return
+type FrontController struct {
+}
+
+func NewFrontController() FrontController {
+	return FrontController{}
+}
+
+var endpointMappers = make([]EndpointMapper, 10)
+
+func (f *FrontController) Post(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodPost, function: function})
+}
+
+func (f *FrontController) Put(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodPut, function: function})
+}
+
+func (f *FrontController) Get(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodGet, function: function})
+}
+
+func (f *FrontController) Delete(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodDelete, function: function})
+}
+
+func (f *FrontController) Patch(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodPatch, function: function})
+}
+
+func (f *FrontController) Options(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodOptions, function: function})
+}
+
+func (f *FrontController) Head(url string, function func(c Context)) {
+	endpointMappers = append(endpointMappers, EndpointMapper{url: url, method: http.MethodHead, function: function})
+}
+
+func (f *FrontController) Dispatcher(w http.ResponseWriter, r *http.Request) {
+
+	var path string
+
+	var id string
+
+	if r.URL.Path == "/users" {
+		path = "/users"
+	} else {
+		id = strings.TrimPrefix(r.URL.Path, "/users/")
+		if !bson.IsObjectIdHex(id) {
+			ThrowError(w, http.StatusNotFound)
+			return
+		}
+		path = "/users/:id"
 	}
 
-	id := bson.ObjectIdHex(pathVariable)
-	switch r.Method {
-	case http.MethodGet:
-		GetOne(w, r, id)
-		return
-	case http.MethodPut:
-		UpdateOne(w, r, id)
-		return
-	case http.MethodPatch:
-		PatchOne(w, r, id)
-		return
-	case http.MethodDelete:
-		DeleteOne(w, r, id)
-		return
-	case http.MethodHead:
-		GetOne(w, r, id)
-		return
-	case http.MethodOptions:
-		web.CreateOptionsResponse(w, []string{http.MethodGet, http.MethodPut, http.MethodPatch, http.MethodDelete,
-			http.MethodHead, http.MethodOptions}, nil)
-		return
-	default:
-		web.ThrowError(w, http.StatusMethodNotAllowed)
-		return
+	for k := 0; k < len(endpointMappers); k++ {
+		if endpointMappers[k].url == path && endpointMappers[k].method == r.Method {
+			endpointMappers[k].function(Context{Writer: w, Request: r, Params: map[string]string{"id": id}})
+		}
 	}
 }
