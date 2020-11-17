@@ -4,17 +4,24 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"restfull-api/src/main/go/contract"
 	"restfull-api/src/main/go/root"
 	"restfull-api/src/main/go/user"
 )
 
-var dispatcher = user.NewDispatcher()
-
 func main() {
-	dispatcher := dispatcher.Init()
-	http.HandleFunc("/users", dispatcher.Dispatcher)
-	http.HandleFunc("/users/", dispatcher.Dispatcher)
-	http.HandleFunc("/", root.RootEndpoint)
+	mapRequest(user.NewDispatcher().Init(), "/users/", "/users")
+	mapRequest(root.NewDispatcher().Init(), "/")
+	start()
+}
+
+func mapRequest(dispatcher contract.FrontController, url ...string) {
+	for i := 0; i < len(url); i++ {
+		http.HandleFunc(url[i], dispatcher.Endpoint)
+	}
+}
+
+func start() {
 	err := http.ListenAndServe("localhost:8081", nil)
 	if err != nil {
 		fmt.Println(err)

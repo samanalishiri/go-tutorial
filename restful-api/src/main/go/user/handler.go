@@ -7,28 +7,21 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
+	"restfull-api/src/main/go/contract"
+	"restfull-api/src/main/go/utils"
 )
-
-type Handler interface {
-	SaveOne(c Context)
-	GetOne(c Context)
-	UpdateOne(c Context)
-	DeleteOne(c Context)
-	PatchOne(c Context)
-	GetAll(c Context)
-}
 
 type HandlerImpl struct {
 	repository Repository
 }
 
-func NewHandler() Handler {
+func NewHandler() contract.Handler {
 	return &HandlerImpl{
 		repository: NewUserRepository(),
 	}
 }
 
-func (h *HandlerImpl) GetBody(c Context, u *User) error {
+func (h *HandlerImpl) GetBody(c contract.Context, u *User) error {
 	if c.Request.Body == nil {
 		return errors.New("request body is empty")
 	}
@@ -46,11 +39,11 @@ func (h *HandlerImpl) GetBody(c Context, u *User) error {
 	return json.Unmarshal(body, u)
 }
 
-func (h *HandlerImpl) SaveOne(c Context) {
+func (h *HandlerImpl) SaveOne(c contract.Context) {
 	u := new(User)
 	err := h.GetBody(c, u)
 	if err != nil {
-		ThrowError(c.Writer, http.StatusBadRequest)
+		utils.ThrowError(c.Writer, http.StatusBadRequest)
 		return
 	}
 
@@ -59,9 +52,9 @@ func (h *HandlerImpl) SaveOne(c Context) {
 	err = h.repository.Save(u)
 	if err != nil {
 		if err == ErrRecordInvalid {
-			ThrowError(c.Writer, http.StatusBadRequest)
+			utils.ThrowError(c.Writer, http.StatusBadRequest)
 		} else {
-			ThrowError(c.Writer, http.StatusInternalServerError)
+			utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -70,85 +63,93 @@ func (h *HandlerImpl) SaveOne(c Context) {
 	c.Writer.WriteHeader(http.StatusCreated)
 }
 
-func (h *HandlerImpl) GetOne(c Context) {
+func (h *HandlerImpl) GetOne(c contract.Context) {
 	u, err := h.repository.FindById(bson.ObjectIdHex(c.Params["id"]))
 	if err != nil {
 		if err == storm.ErrNotFound {
-			ThrowError(c.Writer, http.StatusNotFound)
+			utils.ThrowError(c.Writer, http.StatusNotFound)
 			return
 		}
-		ThrowError(c.Writer, http.StatusInternalServerError)
+		utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		return
 	}
-	CreatHttpResponse(c, http.StatusOK, u)
+	utils.CreatHttpResponse(c, http.StatusOK, u)
 }
 
-func (h *HandlerImpl) UpdateOne(c Context) {
+func (h *HandlerImpl) UpdateOne(c contract.Context) {
 	u := new(User)
 	err := h.GetBody(c, u)
 	if err != nil {
-		ThrowError(c.Writer, http.StatusBadRequest)
+		utils.ThrowError(c.Writer, http.StatusBadRequest)
 		return
 	}
 	u.ID = bson.ObjectIdHex(c.Params["id"])
 	err = h.repository.Save(u)
 	if err != nil {
 		if err == ErrRecordInvalid {
-			ThrowError(c.Writer, http.StatusBadRequest)
+			utils.ThrowError(c.Writer, http.StatusBadRequest)
 		} else {
-			ThrowError(c.Writer, http.StatusInternalServerError)
+			utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		}
 		return
 	}
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (h *HandlerImpl) DeleteOne(c Context) {
+func (h *HandlerImpl) DeleteOne(c contract.Context) {
 	err := h.repository.DeleteById(bson.ObjectIdHex(c.Params["id"]))
 	if err != nil {
 		if err == storm.ErrNotFound {
-			ThrowError(c.Writer, http.StatusNotFound)
+			utils.ThrowError(c.Writer, http.StatusNotFound)
 			return
 		}
-		ThrowError(c.Writer, http.StatusInternalServerError)
+		utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		return
 	}
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (h *HandlerImpl) PatchOne(c Context) {
+func (h *HandlerImpl) PatchOne(c contract.Context) {
 	u, err := h.repository.FindById(bson.ObjectIdHex(c.Params["id"]))
 	if err != nil {
 		if err == storm.ErrNotFound {
-			ThrowError(c.Writer, http.StatusNotFound)
+			utils.ThrowError(c.Writer, http.StatusNotFound)
 			return
 		}
-		ThrowError(c.Writer, http.StatusInternalServerError)
+		utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		return
 	}
 	err = h.GetBody(c, u)
 	if err != nil {
-		ThrowError(c.Writer, http.StatusBadRequest)
+		utils.ThrowError(c.Writer, http.StatusBadRequest)
 		return
 	}
 	u.ID = bson.ObjectIdHex(c.Params["id"])
 	err = h.repository.Save(u)
 	if err != nil {
 		if err == ErrRecordInvalid {
-			ThrowError(c.Writer, http.StatusBadRequest)
+			utils.ThrowError(c.Writer, http.StatusBadRequest)
 		} else {
-			ThrowError(c.Writer, http.StatusInternalServerError)
+			utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		}
 		return
 	}
 	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
-func (h *HandlerImpl) GetAll(c Context) {
+func (h *HandlerImpl) GetAll(c contract.Context) {
 	users, err := h.repository.FindAll()
 	if err != nil {
-		ThrowError(c.Writer, http.StatusInternalServerError)
+		utils.ThrowError(c.Writer, http.StatusInternalServerError)
 		return
 	}
-	CreatHttpResponse(c, http.StatusOK, users)
+	utils.CreatHttpResponse(c, http.StatusOK, users)
+}
+
+func (h *HandlerImpl) GetBasicMethod(c contract.Context) {
+	utils.CreateOptionsResponse(c, []string{http.MethodGet, http.MethodPost, http.MethodHead, http.MethodOptions}, nil)
+}
+
+func (h *HandlerImpl) GetAllMethod(c contract.Context) {
+	utils.CreateOptionsResponse(c, []string{http.MethodGet, http.MethodPost, http.MethodHead, http.MethodOptions}, nil)
 }

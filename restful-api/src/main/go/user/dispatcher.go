@@ -1,41 +1,30 @@
 package user
 
-import (
-	"net/http"
-)
-
-var (
-	handler = NewHandler()
-)
+import "restfull-api/src/main/go/contract"
 
 type Dispatcher struct {
+	handler contract.Handler
 }
 
-func NewDispatcher() *Dispatcher {
-	return &Dispatcher{}
+func NewDispatcher() contract.Dispatcher {
+	return &Dispatcher{
+		handler: NewHandler(),
+	}
 }
 
-func (d *Dispatcher) Init() FrontController {
+func (d *Dispatcher) Init() contract.FrontController {
 	controller := NewFrontController()
 
-	controller.Get("/users", handler.GetAll)
-	controller.Post("/users", handler.SaveOne)
-	controller.Get("/users", handler.GetAll)
-	controller.Options("/users", func(c Context) {
-		CreateOptionsResponse(c,
-			[]string{http.MethodGet, http.MethodPost, http.MethodHead, http.MethodOptions},
-			nil)
-	})
-	controller.Get("/users/:id", handler.GetOne)
-	controller.Put("/users/:id", handler.UpdateOne)
-	controller.Patch("/users/:id", handler.PatchOne)
-	controller.Delete("/users/:id", handler.DeleteOne)
-	controller.Head("/users/:id", handler.GetOne)
-	controller.Options("/users/:id", func(c Context) {
-		CreateOptionsResponse(c,
-			[]string{
-				http.MethodGet, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodHead, http.MethodOptions},
-			nil)
-	})
+	controller.Get("/users", d.handler.GetAll)
+	controller.Post("/users", d.handler.SaveOne)
+	controller.Head("/users", d.handler.GetAll)
+	controller.Options("/users", d.handler.GetBasicMethod)
+	controller.Get("/users/:id", d.handler.GetOne)
+	controller.Put("/users/:id", d.handler.UpdateOne)
+	controller.Patch("/users/:id", d.handler.PatchOne)
+	controller.Delete("/users/:id", d.handler.DeleteOne)
+	controller.Head("/users/:id", d.handler.GetOne)
+	controller.Options("/users/:id", d.handler.GetAllMethod)
+
 	return controller
 }

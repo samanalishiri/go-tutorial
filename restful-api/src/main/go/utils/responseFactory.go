@@ -1,8 +1,9 @@
-package user
+package utils
 
 import (
 	"encoding/json"
 	"net/http"
+	"restfull-api/src/main/go/contract"
 	"strings"
 )
 
@@ -12,7 +13,7 @@ func ThrowError(w http.ResponseWriter, code int) {
 	http.Error(w, http.StatusText(code), code)
 }
 
-func CreatHttpResponse(c Context, code int, content interface{}) {
+func CreatHttpResponse(c contract.Context, code int, content interface{}) {
 	if content == nil {
 		c.Writer.WriteHeader(code)
 		c.Writer.Write([]byte(http.StatusText(code)))
@@ -30,7 +31,7 @@ func CreatHttpResponse(c Context, code int, content interface{}) {
 	c.Writer.Write(body)
 }
 
-func CreateOptionsResponse(c Context, methods []string, content JsonResponse) {
+func CreateOptionsResponse(c contract.Context, methods []string, content JsonResponse) {
 	c.Writer.Header().Set("Allow", strings.Join(methods, ","))
 	CreatHttpResponse(c, http.StatusOK, content)
 }
