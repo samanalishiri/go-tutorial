@@ -6,43 +6,16 @@ import (
 )
 
 type FrontController struct {
+	contract.FrontControllerImpl
 }
 
 func NewFrontController() contract.FrontController {
-	return &FrontController{}
+	return &FrontController{
+		contract.FrontControllerImpl{EndpointMappers: make([]contract.EndpointMapper, 0, 10)},
+	}
 }
 
-var endpointMappers = make([]contract.EndpointMapper, 10)
-
-func (f *FrontController) Post(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodPost, Function: function})
-}
-
-func (f *FrontController) Put(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodPut, Function: function})
-}
-
-func (f *FrontController) Get(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodGet, Function: function})
-}
-
-func (f *FrontController) Delete(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodDelete, Function: function})
-}
-
-func (f *FrontController) Patch(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodPatch, Function: function})
-}
-
-func (f *FrontController) Options(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodOptions, Function: function})
-}
-
-func (f *FrontController) Head(url string, function func(c contract.Context)) {
-	endpointMappers = append(endpointMappers, contract.EndpointMapper{URL: url, Method: http.MethodHead, Function: function})
-}
-
-func (f *FrontController) Endpoint(w http.ResponseWriter, r *http.Request) {
+func (f *FrontController) Route(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/" {
 		w.WriteHeader(http.StatusNotFound)
@@ -52,9 +25,9 @@ func (f *FrontController) Endpoint(w http.ResponseWriter, r *http.Request) {
 
 	var path = "/"
 
-	for i := 0; i < len(endpointMappers); i++ {
-		if endpointMappers[i].URL == path && endpointMappers[i].Method == r.Method {
-			endpointMappers[i].Function(contract.Context{Writer: w, Request: r})
+	for i := 0; i < len(f.EndpointMappers); i++ {
+		if f.EndpointMappers[i].URL == path && f.EndpointMappers[i].Method == r.Method {
+			f.EndpointMappers[i].Function(contract.Context{Writer: w, Request: r})
 		}
 	}
 }

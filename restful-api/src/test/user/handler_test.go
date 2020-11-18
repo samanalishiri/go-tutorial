@@ -32,7 +32,7 @@ func Test1_UserSave_GivenUser_PostRequest_ThenReturnLocation(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(dispatcher.Endpoint)
+	handler := http.HandlerFunc(dispatcher.Route)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
@@ -48,7 +48,7 @@ func Test2_UserGetOne_GivenIdentity_GetRequest_ThenReturnUser(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(dispatcher.Endpoint)
+	handler := http.HandlerFunc(dispatcher.Route)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -75,7 +75,7 @@ func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.
 	req.Header.Add("Content-Type", "application/json")
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(dispatcher.Endpoint)
+	handler := http.HandlerFunc(dispatcher.Route)
 	handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNoContent, rr.Code)
@@ -86,7 +86,7 @@ func Test3_UserUpdate_GivenIdentityAndUser_PutRequest_ThenReturnUser(t *testing.
 	req2.Header.Add("Content-Type", "application/json")
 
 	rr2 := httptest.NewRecorder()
-	handler2 := http.HandlerFunc(dispatcher.Endpoint)
+	handler2 := http.HandlerFunc(dispatcher.Route)
 	handler2.ServeHTTP(rr2, req2)
 
 	assert.Equal(t, http.StatusOK, rr2.Code)

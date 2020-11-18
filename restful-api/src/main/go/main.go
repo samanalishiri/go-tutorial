@@ -17,7 +17,7 @@ func main() {
 
 func mapRequest(dispatcher contract.FrontController, url ...string) {
 	for i := 0; i < len(url); i++ {
-		http.HandleFunc(url[i], dispatcher.Endpoint)
+		http.HandleFunc(url[i], dispatcher.Route)
 	}
 }
 
